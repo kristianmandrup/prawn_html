@@ -5,45 +5,38 @@ A complete redesign of my old prawn-assist.
 This gem has the goal of making it much easier to convert HTML into suitable PDF with a lot of options.
 I am not by any means a prawn expert, so please provide feedback with fixes, suggestions and ideas!
 
-The general design is the following.
+## Design ##
 
-1. Clean the HTML, removing tags that have no meaning for PDF generation, such as <script>, <head>, <meta> etc.
-2. Optionally perform HTML Tidy on the document using a webservice (is there another means?)
-3. Normalize HTML by converting eascpaed characters to valid UTF-8 chars. Which gem to use?
-3. Fix the HTML, by inserting or replacing tags to conform with the use of prawn-format. 
-3a. Insert breaks after block tags to force line break.
-3b. Adjust lists
-3c. Insert generator instructions for how to handle tables, images and other complex nodes
-4. Generate PDF using HTML and generator instructions
+The generator will be designed top follow these steps:
+
+1. HTML Tidy
+1. Clean HTML from certain tags
+2. Normalize HTML escaping to UTF-8 chars (supported by Prawn)
+3. Fix HTML for use with prawn-format
+4. Insert generator instructions for complex pdf nodes (tables, images, ...)
+5. Generate PDF using generator instructions and Fixed HTML
 
 The parser uses `nokogiri` for html parsing.
 The generator uses `pdf-format` to layout simple HTML such as bold, italic, underline and other simple 'formatting'.
 
-Would be nice to integrate with a css parser later, loading all referenced stylesheets and determine which rules apply to which tags and then
-have the PDF reflect those styles. This could be a subproject!
+It would be nice to integrate with a css parser later. 
+I imagine first loading all referenced stylesheets and parsing them into a model. 
+Then in the generate pdf step determine which rules apply to which tags and have the PDF reflect those styles. 
+This could be a subproject!
 
-The generator (should?) supports a special set of css styles to indicate meta info for the generation and layout process, such as laying out multiple images or tables
-in a special grid layout in the PDF document, thick borders and captions etc. 
+The PDF generator should support a special set of css styles to indicate meta info for PDF generation/layout, such as the layout of multiple images or tables
+in a special grid layout in the PDF document, thick borders, captions etc. Perhaps also page numbering and header/footers?
    
 ## Intended Use ##
 
 <pre>
   # first put html into a string
   html = %q{
-    <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
-       "http://www.w3.org/TR/html4/strict.dtd">
-    <html lang="en">
-    <head>
-    	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    	<title>untitled</title>
-    	<meta name="generator" content="TextMate http://macromates.com/">
-    	<meta name="author" content="Kristian Mandrup">
-    	<!-- Date: 2010-04-04 -->
-    </head>
-    <body>
-      <h1>Hello World</h1>
-    </body>
-    </html>
+    ...
+  }  
+
+  other_html = %q{
+    ...
   }  
 </pre>
 
@@ -88,10 +81,10 @@ pdf_generator.create_pdf(other_html, {:position => {:line_height => 12}})
 ## Changelog ##
 
 April 6, 2010:
- - About 50% of refactoring complete, mostly in parser and fixer. 
- - Needs good testing suite using rspec or test-unit. 
+* About 50% of refactoring complete, mostly in parser and fixer. 
+* Needs good testing suite using rspec or test-unit. 
 
-== Note on Patches/Pull Requests
+## Note on Patches/Pull Requests ##
  
 * Fork the project.
 * Make your feature addition or bug fix.
