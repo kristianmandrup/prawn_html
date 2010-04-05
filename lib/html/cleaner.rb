@@ -1,5 +1,5 @@
-require 'html/parser/cleaner_operations'
-require 'html/parser/taglist_handler'
+require 'html/helpers/cleaner_ops'
+require 'html/helpers/taglist_handler'
 
 module Prawn
   module Html    

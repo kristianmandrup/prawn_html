@@ -20,7 +20,7 @@ module Prawn
   module Html    
     class Fixer 
       module Table
-        attr_accessor :tables, :table_obj
+        attr_accessor :tables, :table_obj, :header, :configure_table_options, :rows
 
         def table_marker 
           'TABLE'
@@ -31,37 +31,47 @@ module Prawn
           @table_obj = {}
         end
 
-        def fix_tables(doc)          
+        def fix(html, doc)          
           doc.css('table').each do |table|
-            table_obj = {}
-            header = table_obj[:headers] = []            
-            configure_table_options(table)
-            rows = table_obj[:rows] = []
-            # header
-            table.css('tr').each_with_index do |tr, index|
-              if index == 0
-    
-                tr.css('th').each do |th|
-                  th_hash = get_th_hash(th)
-                  header << th_hash
-                end
-                tr.css('td').each do |td|
-                  th_hash = get_th_hash(th)
-                  header << th_hash
-                end
-              else
-                cells = []
-                tr.css('td').each do |td|
-                  cells << td.inner_html
-                end
-                rows << cells
-              end
-            end
+            
+            configure(table)            
+            fix_row(table)
+            
             tables << table_obj
+            self
           end
 
-          result.replace_tags_marker!('table', table_marker) 
+          html.replace_tags_marker!('table', table_marker) 
         end 
+
+        def configure(table)
+          table_obj = {}
+          header = table_obj[:headers] = []            
+          configure_table_options(table)
+          rows = table_obj[:rows] = []
+        end
+
+        def fix_row(table)
+          # header
+          table.css('tr').each_with_index do |tr, index|
+            if index == 0    
+              tr.css('th').each do |th|
+                th_hash = get_th_hash(th)
+                header << th_hash
+              end
+              tr.css('td').each do |td|
+                th_hash = get_th_hash(th)
+                header << th_hash
+              end
+            else
+              cells = []
+              tr.css('td').each do |td|
+                cells << td.inner_html
+              end
+              rows << cells
+            end
+          end
+        end
         
         def configure_table_options(table) 
           cls = table['class'] || ""

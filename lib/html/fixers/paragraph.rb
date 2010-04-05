@@ -9,7 +9,7 @@ module Prawn
         def initialize(options = {})
         end
 
-        def fix_paragraphs(html)          
+        def fix(html, doc = nil)          
           html.replace_start_tags_marker!('p', break_marker)
           html.strip_tags!('p')
         end

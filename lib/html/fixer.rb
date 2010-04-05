@@ -1,3 +1,13 @@
+require 'html/helpers/fixer_ops'
+require 'html/helpers/taglist_handler'
+
+# TODO: dynamic include! 
+# use require-me gem!
+require 'html/fixers/image'
+require 'html/fixers/list'
+require 'html/fixers/paragraph'
+require 'html/fixers/table'
+
 module Prawn
   module Html    
     class Fixer 
@@ -28,11 +38,16 @@ module Prawn
         
         # TODO: make more flexible by auto including and executing fixers! 
         
-        # use other fixers
-        table_fixer = Table.new.fix(html)
-        image_fixer = Image.new.fix(html)        
+        # use other fixers   
+        doc = Nokogiri::HTML.parse(html)
+                  
+        table_fixer = Table.new.fix(html, doc)
+        image_fixer = Image.new.fix(html, doc)        
         
-        {:html_list => html.split(/:#:/), :tables => table_fixer.tables, :images => image_fixer.images}        
+        Paragraph.new.fix(html, doc)
+        List.new.fix(html, doc)        
+        
+        {:instructions => html.split(/:#:/), :tables => table_fixer.tables, :images => image_fixer.images}        
       end
       
       def fix_block_tags(tags)
