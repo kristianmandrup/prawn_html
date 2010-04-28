@@ -1,31 +1,68 @@
 # prawn-html ##
 
-A complete redesign of my old prawn-assist.  
+A complete redesign of my old `prawn-assist` library.  
 
 This gem has the goal of making it much easier to convert HTML into suitable PDF with a lot of options.
 I am not by any means a prawn expert, so please provide feedback with fixes, suggestions and ideas!
+
+## Requirements ##
+
+* HTML tidy (see http://github.com/alexdunae/tidy)
+* css_parser 1.1.0 (http://github.com/zapnap/css_parser)
+* sanitize
+
+To clean up the html and remove unwanted/needed parts for pdf generation, maybe:
+
+http://raa.ruby-lang.org/project/whitewash/
+http://wonko.com/post/sanitize
+
+I think all the HTML text nodes of relevance (between the tags) should be encoded using the 'htmlentities' gem. Prawn supports UTF-8 characters!
+
+http://github.com/threedaymonk/htmlentities/blob/master/test/entities_test.rb
+
+Something like:
+
+    # Add basic utf-8 encoding support (Ruby 1.8)
+    $KCODE = 'UTF8'
+
+module Html
+  def self.encode(input, *args)
+    @coder ||= HTMLEntities.new;
+    [xhtml1_entities, html4_entities].each do |coder|
+       coder.encode(input, *args))
+    end
+  end
+end
+
+encoded_html = Html.encode(html)
 
 ## Design ##
 
 The generator will be designed top follow these steps:
 
-1. HTML Tidy
+0. HTML Tidy (see http://github.com/alexdunae/tidy)
 1. Clean HTML from certain tags
 2. Normalize HTML escaping to UTF-8 chars (supported by Prawn)
 3. Fix HTML for use with prawn-format
 4. Insert generator instructions for complex pdf nodes (tables, images, ...)
 5. Generate PDF using generator instructions and Fixed HTML
 
-The parser uses `nokogiri` for html parsing.
-The generator uses `pdf-format` to layout simple HTML such as bold, italic, underline and other simple 'formatting'.
+## CSS to PDF styles ##
+All referenced stylesheets should be loaded by `css_parser` for lookup by the HTML elements when traversed. 
 
-It would be nice to integrate with a css parser later. 
-I imagine first loading all referenced stylesheets and parsing them into a model. 
-Then in the generate pdf step determine which rules apply to which tags and have the PDF reflect those styles. 
-This could be a subproject!
+In order to using styling information from CSS stylesheets, the HTML can't be stripped before styles have been calculated for the HTML elements and somehow saved.
+Some HTML elements with structural importance for styling should just be "ignored" by prawn-format instead of being stripped. 
 
 The PDF generator should support a special set of css styles to indicate meta info for PDF generation/layout, such as the layout of multiple images or tables
 in a special grid layout in the PDF document, thick borders, captions etc. Perhaps also page numbering and header/footers?
+
+
+## Parsing the HTML ## 
+The parser uses `nokogiri` for html parsing.
+The generator uses `pdf-format` to layout simple HTML such as bold, italic, underline and other simple 'formatting'.
+
+Then in the generate pdf step determine which rules apply to which tags and have the PDF reflect those styles. 
+This could be a subproject!
    
 ## Intended Use ##
 
