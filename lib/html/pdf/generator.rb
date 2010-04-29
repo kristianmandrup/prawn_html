@@ -10,9 +10,12 @@ module Prawn
         line_height = 12       
         break_height = line_height + (line_height / 4)        
 
-        position_options = {:position => {:ypos => 30, :xpos => 0, :new_page_ypos => 30}
-        scale_options = {:scale => {:page_height => 600, :line_height => line_height, :break_height => break_height}
-        table_options = {:table => {:line_height => 16, :font_size => 12, :cell_width => 120}}
+        position_opt = {:ypos => 30, :xpos => 0, :new_page_ypos => 30}
+        position_options = {:position => position_opt}
+        scale_opt = {:page_height => 600, :line_height => line_height, :break_height => break_height}
+        scale_options = {:scale => scale_opt}
+        table_opt = {:line_height => 16, :font_size => 12, :cell_width => 120}
+        table_options = {:table => table_opt}
 
         pdf_options = position_options + scale_options + table_options 
         {:pdf_gen => pdf_options}
@@ -33,19 +36,19 @@ module Prawn
         # generate pdf      
         pdf_model[:instructions].each do |item|
           case item 
-            when 'BREAK'
-              action_handler.do_break
-            when 'TABLE'
-              action_handler.do_table
-            when 'IMG'                  
-              action_handler.do_image
-            when 'NEW_PAGE'
-              action_handler.do_new_page      
-            else
-              action_handler.do_default 
-            end
+          when 'BREAK'
+            action_handler.do_break
+          when 'TABLE'
+            action_handler.do_table
+          when 'IMG'                  
+            action_handler.do_image
+          when 'NEW_PAGE'
+            action_handler.do_new_page      
+          else
+            action_handler.do_default 
           end
-        end        
-      end
-            
-    end
+        end
+      end        
+    end            
+  end 
+end

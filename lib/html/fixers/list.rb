@@ -1,7 +1,7 @@
 module Prawn
   module Html    
     class Fixer 
-      module List         
+      class List         
         
         def initialize(options = {})
         end                

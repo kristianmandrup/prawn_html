@@ -1,7 +1,7 @@
 module Prawn
   module Html    
     class Fixer 
-      module Paragraph
+      class Paragraph
         def break_marker 
           'BREAK'
         end

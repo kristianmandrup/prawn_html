@@ -19,7 +19,7 @@
 module Prawn
   module Html    
     class Fixer 
-      module Table
+      class Table
         attr_accessor :tables, :table_obj, :header, :configure_table_options, :rows
 
         def table_marker 
@@ -38,10 +38,10 @@ module Prawn
             fix_row(table)
             
             tables << table_obj
-            self
           end
 
           html.replace_tags_marker!('table', table_marker) 
+          self          
         end 
 
         def configure(table)

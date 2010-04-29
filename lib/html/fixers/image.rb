@@ -1,7 +1,7 @@
 module Prawn
   module Html    
     class Fixer 
-      module Image
+      class Image
         attr_accessor :images
         
         def image_marker 
