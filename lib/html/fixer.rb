@@ -5,10 +5,12 @@ require 'html/helpers/taglist_handler'
 
 # TODO: dynamic include! 
 # use require-me gem!
-require 'html/fixers/image'
-require 'html/fixers/list'
-require 'html/fixers/paragraph'
-require 'html/fixers/table'
+require 'html/fixers/items/image'
+require 'html/fixers/items/list'
+require 'html/fixers/items/paragraph'
+require 'html/fixers/items/table'
+
+require 'html/fixers/encoding/entities'
 
 module Prawn
   module Html    

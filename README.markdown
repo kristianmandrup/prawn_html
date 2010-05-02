@@ -8,7 +8,7 @@ I am not by any means a prawn expert, so please provide feedback with fixes, sug
 ## Requirements ##
 
 * HTML tidy (see http://github.com/alexdunae/tidy)
-* css_parser 1.1.0 (http://github.com/zapnap/css_parser)
+* css_parser 1.1.2 (http://github.com/kristianmandrup/css_parser)
 * sanitize
 
 To clean up the html and remove unwanted/needed parts for pdf generation, maybe:
@@ -22,8 +22,9 @@ http://github.com/threedaymonk/htmlentities/blob/master/test/entities_test.rb
 
 Something like:
 
-    # Add basic utf-8 encoding support (Ruby 1.8)
-    $KCODE = 'UTF8'
+<pre>
+# Add basic utf-8 encoding support (Ruby 1.8)
+$KCODE = 'UTF8'
 
 module Html
   def self.encode(input, *args)
@@ -35,34 +36,33 @@ module Html
 end
 
 encoded_html = Html.encode(html)
+</pre>
 
 ## Design ##
 
 The generator will be designed top follow these steps:
 
-0. HTML Tidy (see http://github.com/alexdunae/tidy)
-1. Clean HTML from certain tags
-2. Normalize HTML escaping to UTF-8 chars (supported by Prawn)
-3. Fix HTML for use with prawn-format
-4. Insert generator instructions for complex pdf nodes (tables, images, ...)
-5. Generate PDF using generator instructions and Fixed HTML
+1. HTML Tidy (see http://github.com/alexdunae/tidy)
+2. Load HTML model using Nokogiri
+2. Apply CSS style model on top of HTML model
+2. Clean HTML model from certain tags
+3. Normalize HTML escaping to UTF-8 chars using HTML entities (supported by Prawn)
+4. Fix HTML for use with prawn-format
+5. Build PDF Generator Model (tables, images, ...)
+6. Walk through PDF Generator Model and execute Prawn instructions  
 
 ## CSS to PDF styles ##
-All referenced stylesheets should be loaded by `css_parser` for lookup by the HTML elements when traversed. 
 
-In order to using styling information from CSS stylesheets, the HTML can't be stripped before styles have been calculated for the HTML elements and somehow saved.
-Some HTML elements with structural importance for styling should just be "ignored" by prawn-format instead of being stripped. 
+See http://github.com/kristianmandrup/html_css_decorator
 
-The PDF generator should support a special set of css styles to indicate meta info for PDF generation/layout, such as the layout of multiple images or tables
-in a special grid layout in the PDF document, thick borders, captions etc. Perhaps also page numbering and header/footers?
+In order to using styling information from CSS stylesheets, the HTML can't be stripped before styles have been calculated for the HTML elements and saved.
 
+The PDF generator should support a special set of css styles to indicate meta data for PDF generation/layout, such as the layout of multiple images or tables
+in a special grid layout in the PDF document, thick borders, captions, page numbers, header/footer etc. (see Flying Saucer and iText for inspiration)
 
 ## Parsing the HTML ## 
 The parser uses `nokogiri` for html parsing.
 The generator uses `pdf-format` to layout simple HTML such as bold, italic, underline and other simple 'formatting'.
-
-Then in the generate pdf step determine which rules apply to which tags and have the PDF reflect those styles. 
-This could be a subproject!
    
 ## Intended Use ##
 
@@ -91,6 +91,8 @@ position_options = {:ypos => 60}
 scale_options = {:line_height => 16, :font_size => 14}                                             
 table_options = {:font_size => 10, :line_height => 20, :cell_width => 60}
 image_options = {:captions => {:font_size => 12, :bold => false}, :border => :thick}
+                          
+Note: some of these options are just defaults used if no others apply.
 
 node_options = {:table => table_options, :image => image_options}
 
@@ -116,6 +118,11 @@ pdf_generator.create_pdf(other_html, {:position => {:line_height => 12}})
 
 
 ## Changelog ##
+
+April 28, 2010:
+* About 60% of refactoring complete, mostly in parser and fixer. It now compiles and runs.
+* TODO: Need to integrate Tidy, CSS parser and HTML entities gems! perhaps also sanitize? 
+
 
 April 6, 2010:
 * About 50% of refactoring complete, mostly in parser and fixer. 
