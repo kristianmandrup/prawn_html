@@ -1,0 +1,50 @@
+* Tidy HTML
+* Load HTML model using Nokogiri
+* Apply CSS style model on top of HTML model
+* Clean HTML model from certain tags
+* Walk through final Nokogiri HTML model and send each element to a proper PDF decorator
+
+## Tidy HTML ##
+
+Optional
+
+Use tidy ruby wrapper at http://github.com/alexdunae/tidy
+
+If not possible to use tidy executable (fx if hosted on heroku) use Tidy Web Service instead
+
+http://vsbabu.org/services/tidy/
+
+## Load HTML model using Nokogiri and apply CSS styling on model ##
+
+See http://github.com/kristianmandrup/html_css_decorator           
+
+## Clean HTML model from certain tags ##
+
+Use model similar to this (example removes tbody elements)
+
+html = Nokogiri::HTML(DATA)
+html.xpath('//table/tbody').each do |tbody|
+  tbody.children.each do |child|
+    child.parent = tbody.parent
+  end
+  tbody.remove
+end
+
+## Walk through final Nokogiri HTML model and send each element to a proper PDF decorator ##
+
+# Walk through outer elements
+html.('*').each do |element|
+  Pdf::Drawer.draw(element)
+end
+
+# handle margin, border, padding 
+
+For each element, calculate box position by adding margin, border and padding in all directions
+End position of box becomes default start position of next element at the same "level" 
+
+Also handle display property: none, inline ,block, list-item;
+Also support: visibility:hidden;
+
+Don't use Prawn format
+
+
