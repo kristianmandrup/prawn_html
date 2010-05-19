@@ -1,0 +1,148 @@
+HTML 5 spec
+-----------
+
+A table consists of cells aligned on a two-dimensional grid of slots with coordinates (x, y). The grid is finite, and is either empty or has one or more slots. If the grid has one or more slots, then the x coordinates are always in the range 0 ≤ x < xwidth, and the y  coordinates are always in the range 0 ≤ y < yheight. If one or both of xwidth and yheight are zero, then the table is empty (has no slots). Tables correspond to table elements.
+
+A cell is a set of slots anchored at a slot (cellx, celly), and with a particular width and height such that the cell covers all the slots with coordinates (x, y) where cellx ≤ x < cellx+width and celly ≤ y < celly+height. Cells can either be data cells or header cells. Data cells correspond to td elements, and header cells correspond to th elements. Cells of both types can have zero or more associated header cells.
+
+It is possible, in certain error cases, for two cells to occupy the same slot.
+
+A row is a complete set of slots from x=0 to x=xwidth-1, for a particular value of y. Rows correspond to tr elements.
+
+A column is a complete set of slots from y=0 to y=yheight-1, for a particular value of x. Columns can correspond to col elements. In the absence of col elements, columns are implied.
+
+A row group is a set of rows anchored at a slot (0, groupy) with a particular height such that the row group covers all the slots with coordinates (x, y) where 0 ≤ x < xwidth and groupy ≤ y < groupy+height. Row groups correspond to tbody, thead, and tfoot elements. Not every row is necessarily in a row group.
+
+A column group is a set of columns anchored at a slot (groupx, 0) with a particular width such that the column group covers all the slots with coordinates (x, y) where groupx ≤ x < groupx+width and 0 ≤ y < yheight. Column groups correspond to colgroup elements. Not every column is necessarily in a column group.
+
+
+--------------------
+User Agent Algorithm
+--------------------
+
+To determine which elements correspond to which slots in a table associated with a table element, to determine the dimensions of the table (xwidth and yheight), and to determine if there are any table model errors, user agents must use the following algorithm:
+
+   1. Let xwidth be zero.
+   2. Let yheight be zero.
+   3. Let pending TFOOT elements be a list of TFOOT elements, initially empty.
+   4. Let the TABLE be the table represented by the table element. The xwidth and yheight variables give the table's dimensions. The table is initially empty.
+   5. If the table element has no children elements, then return the table (which will be empty), and abort these steps.
+   6. Associate the first caption element child of the table element with the table. If there are no such children, then it has no associated caption element.
+   7. Let the current element be the first element child of the table element.
+
+   If a step in this algorithm ever requires the current element to be advanced to the next child of the table when there is no such next child, then the user agent must jump to the step labeled end, near the end of this algorithm.
+   
+   8. While the current element is not one of the following elements, advance the current element to the next child of the table:
+          * colgroup
+          * thead
+          * tbody
+          * tfoot
+          * tr
+   9. If the current element is a COLGROUP, follow these substeps:
+         1. Column groups: Process the current element according to the appropriate case below:
+            If the current element has any COL element children
+
+                Follow these steps:
+                   1. Let xstart have the value of xwidth.
+                   2. Let the current COLUMN be the first col element child of the COLGROUP element.
+                   3. Columns: If the current column col element has a span attribute, then parse its value using the rules for parsing non-negative integers.
+                      If the result of parsing the value is not an error or zero, then let span be that value.
+                      Otherwise, if the col element has no span attribute, or if trying to parse the attribute's value resulted in an error or zero, then let span be 1.
+                   4. Increase xwidth by span.
+                   5. Let the last span columns in the table correspond to the current column COL element.
+                   6. If current COLUMN is not the last col element child of the COLGROUP element, then let the current column be the next COL element child of 
+                      the COLGROUP element, and return to the step labeled columns.
+                   7. Let all the last columns in the table from x=xstart to x=xwidth-1 form a new column group, anchored at the slot (xstart, 0), with 
+                      width xwidth-xstart, corresponding to the COLGROUP element.
+            
+             If the current element has no COL element children
+                   1. If the COLGROUP element has a span attribute, then parse its value using the rules for parsing non-negative integers.
+                      If the result of parsing the value is not an error or zero, then let span be that value.
+                      Otherwise, if the COLGROUP element has no span attribute, or if trying to parse the attribute's value resulted in an error or zero, then let span be 1.
+                   2. Increase xwidth by span.
+                   3. Let the last span columns in the table form a new column group, anchored at the slot (xwidth-span, 0), with width span, 
+                      corresponding to the COLGROUP element.
+         2. Advance the current element to the next child of the table.
+         3. While the current element is not one of the following elements, advance the current element to the next child of the table:
+                * colgroup
+                * thead
+                * tbody
+                * tfoot
+                * tr
+         4. If the current element is a COLGROUP element, jump to the step labeled column groups above.
+  10. Let ycurrent be zero.
+  11. Let the list of downward-growing cells be an empty list.
+  12. Rows: While the current element is not one of the following elements, advance the current element to the next child of the table:
+          * thead
+          * tbody
+          * tfoot
+          * tr
+  13. If the current element is a TR, then run the algorithm for processing rows, advance the current element to the next child of the table, and return to 
+      the step labeled rows.
+  14. Run the algorithm for ending a ROW GROUP.
+  15. If the current element is a TFOOT, then add that element to the list of pending TFOOT elements, advance the current element to the next child of the 
+      table, and return to the step labeled rows.
+  16. The current element is either a THEAD or a TBODY.
+      Run the algorithm for processing ROW GROUPS.
+  17. Advance the current element to the next child of the table.
+  18. Return to the step labeled rows.
+  19. End: For each TFOOT element in the list of pending tfoot elements, in tree order, run the algorithm for processing row groups.
+  20. If there exists a ROW or COLUMN in the table containing only slots that do not have a cell anchored to them, then this is a table model error.
+  21. Return the table.
+
+The algorithm for processing ROW GROUPS, which is invoked by the set of steps above for processing THEAD, TBODY, and TFOOT elements, is:
+
+   1. Let ystart have the value of yheight.
+   2. For each TR element that is a child of the element being processed, in tree order, run the algorithm for processing rows.
+   3. If yheight > ystart, then let all the last rows in the table from y=ystart to y=yheight-1 form a new row group, anchored at the slot with coordinate (0, ystart), with height yheight-ystart, corresponding to the element being processed.
+   4. Run the algorithm for ending a row group.
+
+The algorithm for ending a row group, which is invoked by the set of steps above when starting and ending a block of rows, is:
+
+   1. While ycurrent is less than yheight, follow these steps:
+         1. Run the algorithm for growing downward-growing cells.
+         2. Increase ycurrent by 1.
+   2. Empty the list of downward-growing cells.
+
+The algorithm for processing ROWS, which is invoked by the set of steps above for processing TR elements, is:
+
+   1. If yheight is equal to ycurrent, then increase yheight by 1. (ycurrent is never greater than yheight.)
+   2. Let xcurrent be 0.
+   3. Run the algorithm for growing downward-growing cells.
+   4. If the tr element being processed has no td or th element children, then increase ycurrent by 1, abort this set of steps, and return to the algorithm above.
+   5. Let current cell be the first td or th element in the tr element being processed.
+   6. Cells: While xcurrent is less than xwidth and the slot with coordinate (xcurrent, ycurrent) already has a cell assigned to it, increase xcurrent by 1.
+   7. If xcurrent is equal to xwidth, increase xwidth by 1. (xcurrent is never greater than xwidth.)
+   8. If the current cell has a 'colspan' attribute, then parse that attribute's value, and let 'colspan' be the result.
+      If parsing that value failed, or returned zero, or if the attribute is absent, then let 'colspan' be 1, instead.
+   9. If the current cell has a 'rowspan' attribute, then parse that attribute's value, and let 'rowspan' be the result.
+      If parsing that value failed or if the attribute is absent, then let rowspan be 1, instead.
+  10. If 'rowspan' is zero, then let cell grows downward be true, and set rowspan to 1. Otherwise, let cell grows downward be false.
+  11. If xwidth < xcurrent+colspan, then let xwidth be xcurrent+colspan.
+  12. If yheight < ycurrent+rowspan, then let yheight be ycurrent+rowspan.
+  13. Let the slots with coordinates (x, y) such that xcurrent ≤ x < xcurrent+colspan and ycurrent ≤ y < ycurrent+rowspan be covered by a new cell c, anchored 
+      at (xcurrent, ycurrent), which has width colspan and height rowspan, corresponding to the current cell element.
+      If the current cell element is a th element, let this new cell c be a header cell; otherwise, let it be a data cell.
+      To establish which header cells apply to the current cell element, use the algorithm for assigning header cells described in the next section.
+      If any of the slots involved already had a cell covering them, then this is a table model error. Those slots now have two cells overlapping.
+  14. If cell grows downward is true, then add the tuple {c, xcurrent, colspan} to the list of downward-growing cells.
+  15. Increase xcurrent by colspan.
+  16. If current cell is the last TD or TH element in the TR element being processed, then increase ycurrent by 1, abort this set of steps, and return to 
+      the algorithm above.
+  17. Let current cell be the next TD or TH element in the TR element being processed.
+  18. Return to the step labelled cells.
+
+When the algorithms above require the user agent to run the algorithm for growing downward-growing cells, the user agent must, for each {cell, cellx, width} tuple in the list of downward-growing cells, if any, extend the cell cell so that it also covers the slots with coordinates (x, ycurrent), where cellx ≤ x < cellx+width.
+
+
+<table>
+optionally a caption element
+- followed by either zero or more colgroup elements
+- followed optionally by a thead element
+- followed optionally by a tfoot element
+- followed by either zero or more tbody elements or one or more tr  elements
+- followed optionally by a tfoot element (but there can only be one tfoot element child in total).
+
+<colgroup>
+- Zero or more col elements
+- col element represents one or more columns in the column group represented by that colgroup

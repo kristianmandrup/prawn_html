@@ -1,0 +1,146 @@
+# rails config #
+
+http://wiki.github.com/sandal/prawn/using-prawn-in-rails
+
+$ git submodule add git://github.com/sandal/prawn.git vendor/prawn
+$ cd vendor/prawn/
+$ git checkout origin/stable
+$ git checkout -b stable
+$ git submodule init
+$ git submodule update
+
+
+# config/environment.rb                                                         
+config.load_paths << "#{RAILS_ROOT}/vendor/prawn/lib"
+config.load_paths << "#{RAILS_ROOT}/app/reports"
+
+# config/initializers/prawn.rb
+require 'prawn'
+
+Create reports dir
+$ mkdir app/reports
+
+# config/initializers/mime_types.rb
+Mime::Type.register_alias "application/pdf", :pdf
+
+Rendering PDFs
+
+Suppose we have the following code in app/reports/hello_report.rb:
+
+  class HelloReport < Prawn::Document
+    def to_pdf
+      text "Hello world"
+      render
+    end
+  end
+
+Rendering this report from a controller is easy!
+
+  class HelloController < ApplicationController
+     def index
+      output = HelloReport.new.to_pdf
+
+      respond_to do |format|
+        format.pdf do
+          send_data output, :filename => "hello.pdf", 
+                            :type => "application/pdf"
+        end
+      end
+    end
+  end
+
+# Simple example!
+
+require 'prawn'
+
+Prawn::Document.generate("test.pdf") do
+  font "#{Prawn::BASEDIR}/data/fonts/DejaVuSans.ttf"
+  text "this is a test " * 100
+end
+
+# table #
+
+Using my own fork!
+
+Prawn::Document.generate("multi_page_table.pdf") do
+
+  header = %w[Name Occupation]
+  data = ["Bender Bending Rodriguez", "Bender"]
+  
+  # data can contain cells Prawn::Table::Cell, each with a style
+  
+  table([header] + [data] * 4, :header => true, :row_colors => ["ffffff", "cccccc"]) do
+    row(0).style(:style => :bold, :background_color => 'cccccc')
+    column(0).style(:style => :italic)
+
+    cells[0,0].style(:style => :italic)
+    
+    cell_range(0..1, 0..1) do |cell|
+      cell.style(:style => :bold, :background_color => 'ff0000')    
+    end
+        
+    cell_range(0..1, 0..1) do
+      style(:style => :bold, :background_color => 'ff0000')    
+    end
+  end
+
+end
+
+
+
+# templates #
+James Healy’s templates have finally been merged. 
+
+# grid #
+prawn-grid temporarily removed, will return before 1.0.
+
+# formatting #
+
+HTML-ish tag subset, and a lower level interface that lets you specify formatting explicitly for each segment of text. We have support for bold, italic, underline, strikethrough, internal and external links, subscripts, superscripts, font type, size and color, among other things. (Daniel Nelson) [ For a practical example of using the new formatting system
+
+http://github.com/madriska/jambalaya
+
+# tables #
+
+0.9.1
+We have a brand new table generation API that provides a much greater deal of control over rows and columns and individual cell styling. We also now have support for nested tables.
+
+# security #
+
+prawn-security (merged into core)
+
+# unicode #
+
+For Unicode to work you need to load a TTF font that has the characters you require.
+http://dejavu-fonts.org/wiki/index.php?title=Download
+
+# interactive forms #
+
+http://github.com/yob/prawn-forms
+
+# prawn graphs #
+
+http://github.com/HHRy/prawn-graph
+
+# prawn-grids #
+
+http://www.ducksoupsoftware.com/blog/200907/rails_labels.html
+
+## Controller
+prawnto :prawn => {:left_margin => 0.21975.in, 
+                   :right_margin => 0.21975.in}
+
+## View
+pdf.define_grid(:columns => 3, :rows => 10, :column_gutter => 10)
+
+pdf.grid.rows.times do |i|
+  pdf.grid.columns.times do |j|
+    b = pdf.grid(i,j)
+    pdf.bounding_box b.top_left, :width => b.width, :height => b.height do
+      pdf.text b.name
+      pdf.stroke do
+        pdf.rectangle(pdf.bounds.top_left, b.width, b.height)
+      end
+    end
+  end
+end
